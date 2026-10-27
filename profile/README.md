@@ -6,7 +6,8 @@ JailOps is a ZFS-native management platform for FreeBSD jails, written in Go: a 
 |---|---|
 | [**JailOps**](https://github.com/jailops/jailops) | Jails, ZFS storage, VNET and PF networking, IPv6 routed and switched, backups, `jailops-sync` |
 | [**PkgOps**](https://github.com/jailops/jailops-pkgops) | Build native FreeBSD packages from Go on Linux or macOS, signed `pkg` repositories, an optional registry. No FreeBSD builder |
+| [**Packages**](https://github.com/jailops/jailops-packages) | The signed package repository at `pkg.jailops.net`: JailOps and PkgOps for FreeBSD 15.1 and later, amd64 and arm64 |
 
-Documentation, examples and what is verified today: [jailops.net](https://jailops.net)
+Documentation, examples and the roadmap: [jailops.net](https://jailops.net)
 
 DevOps. SecOps. JailOps.

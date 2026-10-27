@@ -5,7 +5,7 @@
 #
 #   scripts/apply-rulesets.sh            show what would be sent
 #   scripts/apply-rulesets.sh --apply    create or update the rulesets
-#   scripts/apply-rulesets.sh --apply jailops jailops-web      only these repositories
+#   scripts/apply-rulesets.sh --apply jailops jailops-pkgops      only these repositories
 #
 # Safe to repeat: a ruleset with the same name is updated, never duplicated. The required checks are the job names of
 # each repository's workflow (they change when a job is renamed: change them here too).
@@ -19,14 +19,12 @@ command -v jq >/dev/null || { echo "x jq is needed" >&2; exit 1; }
 
 checks() { # the job names that must be green before a pull request can merge
 	case $1 in
-	jailops) printf '%s\n' "Web consoles (build)" "Web consoles (types, unit tests, end-to-end)" \
+	jailops) printf '%s\n' "Web consoles (build)" "Web consoles (types, unit tests)" "Web consoles (end-to-end, Chromium)" \
 		"Go (format, vet, build, types, SDK)" "Go fuzz" \
 		"Go race detector (a)" "Go race detector (b)" "Go race detector (c)" "Go race detector (rest)" \
 		"Cross-build (FreeBSD) (amd64)" "Cross-build (FreeBSD) (arm64)" \
 		"FreeBSD VM (go)" "FreeBSD VM (e2e)" "FreeBSD VM (pf)" ;;
 	jailops-pkgops) printf '%s\n' "build and test (Linux)" "web UI (build, unit tests, e2e)" ;;
-	jailops-freebsd) printf '%s\n' "build and test (Linux)" ;;
-	jailops-web) printf '%s\n' "Build and check" ;;
 	jailops-packages) printf '%s\n' "build" ;;
 	.github) ;; # no workflows: nothing to wait for
 	*) return 1 ;;
@@ -50,7 +48,7 @@ put() { # put REPO NAME JSON: create the ruleset, or update the one that has thi
 
 failed=""
 repos=("$@")
-[ ${#repos[@]} -gt 0 ] || repos=(jailops jailops-pkgops jailops-freebsd jailops-web jailops-packages .github)
+[ ${#repos[@]} -gt 0 ] || repos=(jailops jailops-pkgops jailops-packages .github) # jailops-web is private on the free plan: GitHub refuses rulesets there
 for repo in "${repos[@]}"; do
 	contexts=$(checks "$repo") || { echo "x unknown repository $repo" >&2; exit 1; }
 	n=$(printf '%s' "$contexts" | grep -c . || true)
