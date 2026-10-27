@@ -28,6 +28,7 @@ checks() { # the job names that must be green before a pull request can merge
 	jailops-freebsd) printf '%s\n' "build and test (Linux)" ;;
 	jailops-web) printf '%s\n' "Build and check" ;;
 	jailops-packages) printf '%s\n' "build" ;;
+	.github) ;; # no workflows: nothing to wait for
 	*) return 1 ;;
 	esac
 }
@@ -49,12 +50,17 @@ put() { # put REPO NAME JSON: create the ruleset, or update the one that has thi
 
 failed=""
 repos=("$@")
-[ ${#repos[@]} -gt 0 ] || repos=(jailops jailops-pkgops jailops-freebsd jailops-web jailops-packages)
+[ ${#repos[@]} -gt 0 ] || repos=(jailops jailops-pkgops jailops-freebsd jailops-web jailops-packages .github)
 for repo in "${repos[@]}"; do
 	contexts=$(checks "$repo") || { echo "x unknown repository $repo" >&2; exit 1; }
-	branch=$(jq --argjson c "$(printf '%s\n' "$contexts" | jq -R . | jq -s 'map({context: .})')" \
-		'(.rules[] | select(.type == "required_status_checks") | .parameters.required_status_checks) = $c' rulesets/branch.json)
-	echo "$repo: $(printf '%s\n' "$contexts" | wc -l | tr -d ' ') required checks"
+	n=$(printf '%s' "$contexts" | grep -c . || true)
+	if [ "$n" -gt 0 ]; then
+		branch=$(jq --argjson c "$(printf '%s\n' "$contexts" | jq -R . | jq -s 'map({context: .})')" \
+			'(.rules[] | select(.type == "required_status_checks") | .parameters.required_status_checks) = $c' rulesets/branch.json)
+	else # a repository without workflows has no check to require
+		branch=$(jq '.rules |= map(select(.type != "required_status_checks"))' rulesets/branch.json)
+	fi
+	echo "$repo: $n required checks"
 	if [ $apply -eq 1 ]; then
 		put "$repo" master-protection "$branch" && put "$repo" release-tags "$(cat rulesets/tags.json)" || failed="$failed $repo"
 	else
