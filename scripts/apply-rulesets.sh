@@ -26,6 +26,7 @@ checks() { # the job names that must be green before a pull request can merge
 		"FreeBSD VM (go)" "FreeBSD VM (e2e)" "FreeBSD VM (pf)" ;;
 	jailops-pkgops) printf '%s\n' "build and test (Linux)" "web UI (build, unit tests, e2e)" ;;
 	jailops-packages) printf '%s\n' "build" ;;
+	jailops-recipes) printf '%s\n' "check.sh" ;;
 	.github) ;; # no workflows: nothing to wait for
 	*) return 1 ;;
 	esac
@@ -48,7 +49,7 @@ put() { # put REPO NAME JSON: create the ruleset, or update the one that has thi
 
 failed=""
 repos=("$@")
-[ ${#repos[@]} -gt 0 ] || repos=(jailops jailops-pkgops jailops-packages .github) # jailops-web is private on the free plan: GitHub refuses rulesets there
+[ ${#repos[@]} -gt 0 ] || repos=(jailops jailops-pkgops jailops-packages jailops-recipes .github) # jailops-web is private on the free plan: GitHub refuses rulesets there
 for repo in "${repos[@]}"; do
 	contexts=$(checks "$repo") || { echo "x unknown repository $repo" >&2; exit 1; }
 	n=$(printf '%s' "$contexts" | grep -c . || true)
