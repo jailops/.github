@@ -100,7 +100,10 @@ for repo in "${repos[@]}"; do
 	call "$repo" PUT private-vulnerability-reporting
 	# what the workflows may do by default: read the contents; they cannot approve pull requests; a fork's pull request
 	# waits for approval of a person (every external contributor)
-	call "$repo" PUT actions/permissions/workflow '{"default_workflow_permissions":"read","can_approve_pull_request_reviews":false}'
+	# can_approve_pull_request_reviews is also the switch "Actions may open pull requests": jailops-packages needs it on (its
+	# check-updates workflow opens the bump pull requests), every other repository has it off
+	approve=false; [ "$repo" != jailops-packages ] || approve=true
+	call "$repo" PUT actions/permissions/workflow "{\"default_workflow_permissions\":\"read\",\"can_approve_pull_request_reviews\":$approve}"
 	call "$repo" PUT actions/permissions/fork-pr-contributor-approval '{"approval_policy":"all_external_contributors"}'
 	classic_rule "$repo"
 done
